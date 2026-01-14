@@ -67,19 +67,34 @@
 
 
 const http = require('http');
+const fs = require('fs');
 
 const server = http.createServer((req, res) => {
-    console.log('request has been made from browser to server');
 
-    res.writeHead(200, { 'Content-Type': 'application/json' });
+    if (req.url === '/red' && req.method === 'GET') {
 
-    const data = {
-        name: 'animesh',
-        profession: 'programmer'
-    };
+        const readableStream = fs.createReadStream(__dirname + '/text.txt', 'utf8');
 
-    res.write(JSON.stringify(data));
-    res.end();
+        res.writeHead(200, { 'Content-Type': 'text/plain' });
+
+        readableStream.on('data', (chunk) => {
+            res.write(chunk);
+        });
+
+        readableStream.on('end', () => {
+            res.end();
+        });
+
+        readableStream.on('error', (err) => {
+            res.writeHead(500);
+            res.end('File reading error');
+        });
+
+    } else {
+        res.writeHead(404, { 'Content-Type': 'text/plain' });
+        res.end('Route Not Found');
+    }
+
 });
 
 server.listen(5000, () => {
